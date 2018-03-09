@@ -1,0 +1,26 @@
+{
+  "name": "Document Reader",
+  "id": "viewerDocument",
+  "description": "A TagSpaces extension allowing opening of DOCX files.",
+  "type": "viewer",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {},
+  "authors": [
+    "TagSpaces Authors - http://tagspaces.org",
+    "Ilian Sapundshiev - http://ilian.me"
+  ],
+  "keywords": [
+    "document",
+    "docx",
+    "viewer"
+  ],
+  "license": "MIT",
+  "main": [
+    "main.js"
+  ],
+  "ignore": [
+    "Gruntfile.js"
+  ],
+  "private": true
+}
