@@ -5,29 +5,30 @@
 
 sendMessageToHost({ command: 'loadDefaultTextContent' });
 
-var $documentContent;
-var mammoth;
+var JSZip, JSZipUtils;
+let $documentContent;
+const filePath = getParameterByName('file');
 
 $(document).ready(init);
 function init() {
-  var locale = getParameterByName('locale');
+  const locale = getParameterByName('locale');
   initI18N(locale, 'ns.viewerDocument.json');
 
-  var searchQuery = getParameterByName('query');
+  const searchQuery = getParameterByName('query');
 
-  var extSettings;
+  let extSettings;
   loadExtSettings();
 
   $documentContent = $('#documentContent');
 
-  var styles = ['', 'solarized-dark', 'github', 'metro-vibes', 'clearness', 'clearness-dark'];
-  var currentStyleIndex = 0;
+  const styles = ['', 'solarized-dark', 'github', 'metro-vibes', 'clearness', 'clearness-dark'];
+  let currentStyleIndex = 0;
   if (extSettings && extSettings.styleIndex) {
     currentStyleIndex = extSettings.styleIndex;
   }
 
-  var zoomSteps = ['zoomSmallest', 'zoomSmaller', 'zoomSmall', 'zoomDefault', 'zoomLarge', 'zoomLarger', 'zoomLargest'];
-  var currentZoomState = 3;
+  const zoomSteps = ['zoomSmallest', 'zoomSmaller', 'zoomSmall', 'zoomDefault', 'zoomLarge', 'zoomLarger', 'zoomLargest'];
+  let currentZoomState = 3;
   if (extSettings && extSettings.zoomState) {
     currentZoomState = extSettings.zoomState;
   }
@@ -80,7 +81,7 @@ function init() {
   });
 
   function saveExtSettings() {
-    var settings = {
+    const settings = {
       'styleIndex': currentStyleIndex,
       'zoomState': currentZoomState
     };
@@ -100,7 +101,7 @@ function init() {
 
 // fixing embedding of local images
 function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
-  var hasURLProtocol = function(url) {
+  const hasURLProtocol = function(url) {
     return (
       url.indexOf('http://') === 0 ||
       url.indexOf('https://') === 0 ||
@@ -110,22 +111,22 @@ function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
   };
 
   $documentContent.find('img[src]').each(function() {
-    var currentSrc = $(this).attr('src');
+    const currentSrc = $(this).attr('src');
     if (!hasURLProtocol(currentSrc)) {
-      var path = (isWeb ? '' : 'file://') + fileDirectory + '/' + currentSrc;
+      const path = (isWeb ? '' : 'file://') + fileDirectory + '/' + currentSrc;
       $(this).attr('src', path);
     }
   });
 
   $documentContent.find('a[href]').each(function() {
-    var currentSrc = $(this).attr('href');
-    var path;
+    let currentSrc = $(this).attr('href');
+    let path;
 
     if(currentSrc.indexOf('#') === 0 ) {
       // Leave the default link behaviour by internal links
     } else {
       if (!hasURLProtocol(currentSrc)) {
-        var path = (isWeb ? '' : 'file://') + fileDirectory + '/' + currentSrc;
+        const path = (isWeb ? '' : 'file://') + fileDirectory + '/' + currentSrc;
         $(this).attr('href', path);
       }
 
@@ -142,32 +143,32 @@ function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
 }
 
 function setContent(content, fileDirectory, sourceURL) {
-  // console.log('setContent', content);
-  console.log('fileDirectory', fileDirectory);
-  console.log('sourceURL', sourceURL);
-  // handleFileSelect(content);
 
-  var bodyRegex = /\<body[^>]*\>([^]*)\<\/body/m; // jshint ignore:line
-  var bodyContent;
+  const options = {
+    convertImage: mammoth.images.imgElement((image) => {
+      return image.read("base64").then((imageBuffer) => {
+        return {
+          src: "data:" + image.contentType + ";base64," + imageBuffer
+        };
+      });
+    }),
+    styleMap: [
+      "p[style-name='Section Title'] => h1:fresh",
+      "p[style-name='Subsection Title'] => h2:fresh"
+    ]
+  };
 
-  try {
-    bodyContent = content.match(bodyRegex)[1];
-  } catch (e) {
-    console.log('Error parsing the body of the HTML document. ' + e);
-    bodyContent = content;
-  }
-
-  var sourceURLRegex = /data-sourceurl='([^']*)'/m; // jshint ignore:line
-  var regex = new RegExp(sourceURLRegex);
-  sourceURL = content.match(regex);
-  var url = sourceURL ? sourceURL[1] : undefined;
-
-  // removing all scripts from the document
-  var cleanedBodyContent = bodyContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-
-  //
-  // $documentContent = $('#documentContent');
-  // $documentContent.empty().append(cleanedBodyContent);
+  JSZipUtils.getBinaryContent(filePath ,(err, data) => {
+    if (err) {
+      throw err; // or handle err
+    }
+    mammoth.convertToHtml({ arrayBuffer: data }, options).then((result) => {
+      // console.log(result);
+      // const html = result.value; // The generated HTML
+      // const messages = result.messages; // Any messages, such as warnings during conversion
+      displayDocument(result);
+    }).done();
+  });
 
   if (fileDirectory && fileDirectory.startsWith('file://')) {
     fileDirectory = fileDirectory.substring(('file://').length, fileDirectory.length);
@@ -176,36 +177,41 @@ function setContent(content, fileDirectory, sourceURL) {
   fixingEmbeddingOfLocalImages($documentContent, fileDirectory);
 }
 
-function handleFileSelect(event) {
-  readFileInputEventAsArrayBuffer(event, function(arrayBuffer) {
-    mammoth.convertToHtml({arrayBuffer: arrayBuffer})
-      .then(displayResult)
-      .done();
-  });
-}
+function displayDocument(result) {
+  // document.getElementById("output").innerHTML = result.value;
+  // const messageHtml = result.messages.map((message) => {
+  //   return '<li class="' + message.type + '">' + escapeHtml(message.message) + "</li>";
+  // }).join("");
+  // const appendedContent = document.getElementById("messages").innerHTML = "<ul>" + messageHtml + "</ul>";
 
-function displayResult(result) {
-  document.getElementById("output").innerHTML = result.value;
+  const bodyRegex = /\<body[^>]*\>([^]*)\<\/body/m; // jshint ignore:line
+  let bodyContent;
+  const content = result.value;
+  // const warrningMessage = result.message;
 
-  var messageHtml = result.messages.map(function(message) {
-    return '<li class="' + message.type + '">' + escapeHtml(message.message) + "</li>";
-  }).join("");
+  // const UTF8_BOM = '\ufeff';
+  // let docContent = content;
+  // if (docContent.indexOf(UTF8_BOM) === 0) {
+  //   docContent = docContent.substring(1, docContent.length);
+  // }
+
+  try {
+    bodyContent = content.match(bodyRegex)[1];
+  } catch (e) {
+    console.log('Error parsing the body of the HTML document. ' + e);
+    bodyContent = content;
+  }
+
+  // const sourceURLRegex = /data-sourceurl='([^']*)'/m; // jshint ignore:line
+  // const regex = new RegExp(sourceURLRegex);
+  // sourceURL = content.match(regex);
+  // const url = sourceURL ? sourceURL[1] : undefined;
+
+  // removing all scripts from the document
+  const cleanedBodyContent = bodyContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
 
   $documentContent = $('#documentContent');
-  $documentContent.empty().append(document.getElementById("messages").innerHTML = "<ul>" + messageHtml + "</ul>");
-}
-
-function readFileInputEventAsArrayBuffer(event, callback) {
-  var file = event.target.files[0];
-
-  var reader = new FileReader();
-
-  reader.onload = function(loadEvent) {
-    var arrayBuffer = loadEvent.target.result;
-    callback(arrayBuffer);
-  };
-
-  reader.readAsArrayBuffer(file);
+  $documentContent.empty().append(cleanedBodyContent);
 }
 
 function escapeHtml(value) {

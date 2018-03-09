@@ -1,6 +1,6 @@
 @import '../legacy-ext/common.css';
 
-#htmlContent {
+#documentContent {
     overflow: auto;
     height: 100%;
     font-size: 13px;
@@ -35,7 +35,7 @@
 }
 
 /* Readability */
-#htmlViewer {
+#documentViewer {
     height: 100%;
     font-size: 14px;
 }
