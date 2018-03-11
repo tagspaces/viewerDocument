@@ -1,7 +1,7 @@
-/* Copyright (c) 2013-present The TagSpaces Authors.
+/* Copyright (c) 2018-present The TagSpaces Authors.
  * Use of this source code is governed by the MIT license which can be found in the LICENSE.txt file. */
 
-'use strict';
+ /* globals $, sendMessageToHost, getParameterByName, initI18N */
 
 sendMessageToHost({ command: 'loadDefaultTextContent' });
 
@@ -10,6 +10,7 @@ let $documentContent;
 const filePath = getParameterByName('file');
 
 $(document).ready(init);
+
 function init() {
   const locale = getParameterByName('locale');
   initI18N(locale, 'ns.viewerDocument.json');
@@ -21,12 +22,6 @@ function init() {
 
   $documentContent = $('#documentContent');
 
-  const styles = ['', 'solarized-dark', 'github', 'metro-vibes', 'clearness', 'clearness-dark'];
-  let currentStyleIndex = 0;
-  if (extSettings && extSettings.styleIndex) {
-    currentStyleIndex = extSettings.styleIndex;
-  }
-
   const zoomSteps = ['zoomSmallest', 'zoomSmaller', 'zoomSmall', 'zoomDefault', 'zoomLarge', 'zoomLarger', 'zoomLargest'];
   let currentZoomState = 3;
   if (extSettings && extSettings.zoomState) {
@@ -34,56 +29,11 @@ function init() {
   }
 
   $documentContent.removeClass();
-  $documentContent.addClass('markdown ' + styles[currentStyleIndex] + ' ' + zoomSteps[currentZoomState]);
-
-  $('#changeStyleButton').on('click', function() {
-    currentStyleIndex = currentStyleIndex + 1;
-    if (currentStyleIndex >= styles.length) {
-      currentStyleIndex = 0;
-    }
-    $documentContent.removeClass();
-    $documentContent.addClass('markdown ' + styles[currentStyleIndex] + ' ' + zoomSteps[currentZoomState]);
-    saveExtSettings();
-  });
-
-  $('#resetStyleButton').on('click', function() {
-    currentStyleIndex = 0;
-    $documentContent.removeClass();
-    $documentContent.addClass('markdown ' + styles[currentStyleIndex] + ' ' + zoomSteps[currentZoomState]);
-    saveExtSettings();
-  });
-
-  $('#zoomInButton').on('click', function() {
-    currentZoomState++;
-    if (currentZoomState >= zoomSteps.length) {
-      currentZoomState = 6;
-    }
-    $documentContent.removeClass();
-    $documentContent.addClass('markdown ' + styles[currentStyleIndex] + ' ' + zoomSteps[currentZoomState]);
-    saveExtSettings();
-  });
-
-  $('#zoomOutButton').on('click', function() {
-    currentZoomState--;
-    if (currentZoomState < 0) {
-      currentZoomState = 0;
-    }
-    $documentContent.removeClass();
-    $documentContent.addClass('markdown ' + styles[currentStyleIndex] + ' ' + zoomSteps[currentZoomState]);
-    saveExtSettings();
-  });
-
-  $('#zoomResetButton').on('click', function() {
-    currentZoomState = 3;
-    $documentContent.removeClass();
-    $documentContent.addClass('markdown ' + styles[currentStyleIndex] + ' ' + zoomSteps[currentZoomState]);
-    saveExtSettings();
-  });
+  $documentContent.addClass('markdown ' + zoomSteps[currentZoomState]);
 
   function saveExtSettings() {
     const settings = {
-      'styleIndex': currentStyleIndex,
-      'zoomState': currentZoomState
+      zoomState: currentZoomState
     };
     localStorage.setItem('viewerDocumentSettings', JSON.stringify(settings));
   }
@@ -91,13 +41,7 @@ function init() {
   function loadExtSettings() {
     extSettings = JSON.parse(localStorage.getItem('viewerDocumentSettings'));
   }
-
-  // Menu: hide readability items
-  $('#readabilityFont').hide();
-  $('#readabilityFontSize').hide();
-  $('#themeStyle').hide();
-  $('#readabilityOff').hide();
-};
+}
 
 // fixing embedding of local images
 function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
@@ -110,7 +54,7 @@ function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
     );
   };
 
-  $documentContent.find('img[src]').each(function() {
+  $documentContent.find('img[src]').each(() => {
     const currentSrc = $(this).attr('src');
     if (!hasURLProtocol(currentSrc)) {
       const path = (isWeb ? '' : 'file://') + fileDirectory + '/' + currentSrc;
@@ -118,11 +62,11 @@ function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
     }
   });
 
-  $documentContent.find('a[href]').each(function() {
+  $documentContent.find('a[href]').each(() => {
     let currentSrc = $(this).attr('href');
     let path;
 
-    if(currentSrc.indexOf('#') === 0 ) {
+    if (currentSrc.indexOf('#') === 0) {
       // Leave the default link behaviour by internal links
     } else {
       if (!hasURLProtocol(currentSrc)) {
@@ -131,12 +75,12 @@ function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
       }
 
       $(this).off();
-      $(this).on('click', function(e) {
+      $(this).on('click', (e) => {
         e.preventDefault();
         if (path) {
           currentSrc = encodeURIComponent(path);
         }
-        sendMessageToHost({command: 'openLinkExternally', link: currentSrc});
+        sendMessageToHost({ command: 'openLinkExternally', link: currentSrc });
       });
     }
   });
