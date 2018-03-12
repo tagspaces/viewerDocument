@@ -54,28 +54,20 @@ function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
     );
   };
 
-  $documentContent.find('img[src]').each(() => {
-    const currentSrc = $(this).attr('src');
-    if (!hasURLProtocol(currentSrc)) {
-      const path = (isWeb ? '' : 'file://') + fileDirectory + '/' + currentSrc;
-      $(this).attr('src', path);
-    }
-  });
-
-  $documentContent.find('a[href]').each(() => {
-    let currentSrc = $(this).attr('href');
+  $documentContent.find('a[href]').each((index, link) => {
+    let currentSrc = $(link).attr('href');
     let path;
 
     if (currentSrc.indexOf('#') === 0) {
       // Leave the default link behaviour by internal links
     } else {
       if (!hasURLProtocol(currentSrc)) {
-        const path = (isWeb ? '' : 'file://') + fileDirectory + '/' + currentSrc;
-        $(this).attr('href', path);
+        path = (isWeb ? '' : 'file://') + fileDirectory + '/' + currentSrc;
+        $(link).attr('href', path);
       }
 
-      $(this).off();
-      $(this).on('click', (e) => {
+      $(link).off();
+      $(link).on('click', (e) => {
         e.preventDefault();
         if (path) {
           currentSrc = encodeURIComponent(path);
@@ -87,7 +79,6 @@ function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
 }
 
 function setContent(content, fileDirectory, sourceURL) {
-
   const options = {
     convertImage: mammoth.images.imgElement((image) => {
       return image.read("base64").then((imageBuffer) => {
@@ -102,7 +93,7 @@ function setContent(content, fileDirectory, sourceURL) {
     ]
   };
 
-  JSZipUtils.getBinaryContent(filePath ,(err, data) => {
+  JSZipUtils.getBinaryContent(filePath, (err, data) => {
     if (err) {
       throw err; // or handle err
     }
