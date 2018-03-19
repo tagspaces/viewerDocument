@@ -3,14 +3,17 @@
 
  /* globals $, sendMessageToHost, getParameterByName, initI18N */
 
-sendMessageToHost({ command: 'loadDefaultTextContent' });
-
-var JSZip, JSZipUtils;
+var ExcelJS;
 let $documentContent;
 const filePath = getParameterByName('file');
+const fileExt = filePath
+  .split('.')
+  .pop()
+  .toLowerCase();
+
+sendMessageToHost({ command: 'loadDefaultTextContent' });
 
 $(document).ready(init);
-
 function init() {
   const locale = getParameterByName('locale');
   initI18N(locale, 'ns.viewerDocument.json');
@@ -79,6 +82,19 @@ function fixingEmbeddingOfLocalImages($documentContent, fileDirectory) {
 }
 
 function setContent(content, fileDirectory, sourceURL) {
+  switch (fileExt) {
+    case 'docx':
+      readDoc(content, fileDirectory);
+      break;
+    case 'xlsx':
+      readXLSX(content, fileDirectory);
+      break;
+    default:
+      throw "Dosen't recognize a extension."
+  }
+}
+
+function readDoc(content, fileDirectory) {
   const options = {
     convertImage: mammoth.images.imgElement((image) => {
       return image.read("base64").then((imageBuffer) => {
@@ -155,4 +171,89 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+
+function readXLSX(content, fileDirectory) {
+  // read from a file
+  // const workbook = new ExcelJS.Workbook();
+  // workbook.xlsx.readFile(filePath).then((workbook) => {
+  //     // use workbook
+  //     console.log(workbook);
+  //     const inboundWorksheet = workbook.getWorksheet(1); //or name of the worksheet
+  //     inboundWorksheet.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+  //       console.log("Row " + rowNumber + " = " + JSON.stringify(row.values));
+  //     });
+  //   });
+
+  // var options = {
+  //   filename: filePath,
+  //   useStyles: true,
+  //   useSharedStrings: true
+  // };
+  // console.log(new ExcelJS.Workbook());
+  // var workbook = new ExcelJS.stream.xlsx.WorkbookWriter(options);
+
+  var wb = new ExcelJS.Workbook();
+  var ws = wb.addWorksheet('blort');
+
+  ws.getCell('A1').value = 'Hello, World!';
+  ws.getCell('A2').value = 7;
+
+  wb.xlsx.writeBuffer()
+    .then(function(buffer) {
+      var wb2 = new ExcelJS.Workbook();
+      return wb2.xlsx.load(buffer)
+        .then(function() {
+          var ws2 = wb2.getWorksheet('blort');
+
+          done();
+        });
+    })
+    .catch(function(error) {
+      throw error;
+    })
+
+  // const workbook = new ExcelJS.Workbook();
+  // console.log(workbook);
+  //
+  // workbook.xlsx.readFile(filePath)
+  //   .then((work) => {
+  //     console.log(work);
+  //
+  //     /*get the worksheet with ID 1*/
+  //     const sheet = work.getWorksheet(1);
+  //
+  //     /*or do this if you know what your sheet's standard name*/
+  //     // const sheet = work.getWorksheet('Sheet1');
+  //
+  //     sheet.columns = [
+  //       {key: 'no', width: 10},
+  //       {key: 'name', width: 20},
+  //       {key: 'address', width: 20},
+  //       {key: 'job', width: 20},
+  //       {key: 'birthdate', width: 20, numFmt: 'dd-mm-yyyy h:mm'},
+  //     ];
+  //
+  //     data.forEach(function(item, index) {
+  //       /* I'm pretty sure sheet.addRow() always add to the last filled row + 1*/
+  //       sheet.addRow({
+  //         no: item[0].no,
+  //         name: item[0].name,
+  //         address: item[0].address,
+  //         job: item[0].job,
+  //         birthdate: item[0].birthdate
+  //       });
+  //     });
+
+  //     workbook.xlsx.writeFile("NewFile.xlsx").then(function() {
+  //       console.log("xls file is written.");
+  //       fs.readFile("NewFile.xlsx",function(err,buff) {
+  //         fs.unlink("NewFile.xlsx",function(err){});
+  //         res.setHeader('Content-disposition', 'attachment; filename=NewFile.xlsx');
+  //         res.end(buff, 'binary');
+  //       });
+  //     });
+  //   });
+
 }
