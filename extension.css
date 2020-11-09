@@ -1,69 +1,70 @@
 @import '../legacy-ext/common.css';
 
 #documentContent {
-    overflow: auto;
-    height: 100%;
-    font-size: 13px;
+  overflow: auto;
+  height: 100%;
+  font-size: 13px;
+  padding: 15px;
 }
 
 .zoomSmallest {
-    zoom: 70%;
+  zoom: 70%;
 }
 
 .zoomSmaller {
-    zoom: 80%;
+  zoom: 80%;
 }
 
 .zoomSmall {
-    zoom: 90%;
+  zoom: 90%;
 }
 
 .zoomDefault {
-    zoom: 100%;
+  zoom: 100%;
 }
 
 .zoomLarge {
-    zoom: 110%;
+  zoom: 110%;
 }
 
 .zoomLarger {
-    zoom: 120%;
+  zoom: 120%;
 }
 
 .zoomLargest {
-    zoom: 130%;
+  zoom: 130%;
 }
 
 /* Readability */
 #documentViewer {
-    height: 100%;
-    font-size: 14px;
+  height: 100%;
+  font-size: 14px;
 }
 
 #readabilityFont {
-    margin-left: 19px;
-    margin-top: 11px;
+  margin-left: 19px;
+  margin-top: 11px;
 }
 
 #sanSerifLabel {
-    font-family: Helvetica, Arial, sans-serif
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 #serifLabel {
-    font-family: Georgia, Times New Roman, serif;
+  font-family: Georgia, Times New Roman, serif;
 }
 
 #readabilityFontSize {
-    margin-left: 19px;
-    margin-top: 11px;
+  margin-left: 19px;
+  margin-top: 11px;
 }
 
 .btn-black {
-    background-color: #282a36;
-    color: #ffffff;
+  background-color: #282a36;
+  color: #ffffff;
 }
 
 .btn-sepia {
-    background-color: #f4ecd8;
-    color: #5b4636;
+  background-color: #f4ecd8;
+  color: #5b4636;
 }
