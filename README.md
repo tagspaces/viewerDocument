@@ -1,15 +1,12 @@
 This repository is archived. Please use https://github.com/tagspaces/tagspaces-extensions instead.
 
-# Generic Viewer for TagSpaces
+# Document Viewer for TagSpaces
 
 A TagSpaces extension allowing to open document file.
 
 ## Features
 
-* open document file format
-
-## Used libraries
-no dependencies
+* preview of text document file formats
 
 ## Installation
 
