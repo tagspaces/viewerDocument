@@ -1,4 +1,6 @@
-# General Viewer for TagSpaces
+This repository is archived. Please use https://github.com/tagspaces/tagspaces-extensions instead.
+
+# Generic Viewer for TagSpaces
 
 A TagSpaces extension allowing to open document file.
 
